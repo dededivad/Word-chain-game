@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Szólánc játék</title>
+    <style>
+        body {
+            background-color: #333;
+            color: white;
+        }
+        .user-inputs {
+            margin-top: 10px;
+        }
+
+        .last-input {
+            font-size: 40px;
+            color: greenyellow;
+        }
+    </style>
+</head>
+<body>
+<div style="justify-content: center; display: flex">
+    <form method="post">
+        <label for="user_input">Írd be a szót:</label>
+        <input type="text" id="user_input" name="user_input" autocomplete="off" required style="background-color: black; color: white">
+        <button type="submit" style="background-color: black; color: white">Elküld</button>
+    </form>
+</div>
+
+{% if user_inputs %}
+    <div class="user-inputs">
+        {% for input in user_inputs %}
+            <span class="{% if loop.last %}last-input{% endif %}">{{ input }}</span>
+        {% endfor %}
+    </div>
+{% endif %}
+
+
+
+    <script>
+        // Automatically focus on the input field when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('user_input').focus();
+        });
+    </script>
+</body>
+</html>

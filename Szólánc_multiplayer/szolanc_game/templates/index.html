@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Szólánc játék</title>
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js" integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+" crossorigin="anonymous"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #1a1a1a;
+            color: white;
+        }
+
+        #chat {
+            width: 50%;
+        }
+
+        #chat input {
+            width: 99%;
+        }
+
+        ul {
+            height: 500px;
+            background-color: #333333;
+            overflow-y: scroll;
+            border-radius: 30px;
+        }
+
+        li {
+            list-style: none;
+        }
+
+        #landing {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 10px;
+        }
+        li.last-input {
+            font-size: 26px;
+            color: greenyellow;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="landing">
+        <input type="text" id="username" placeholder="Felhasználónév">
+        <button id="join-btn">Belépés</button>
+    </div>
+
+    <div id="chat" style="display:none">
+
+        <ul id="chat-messages">
+        </ul>
+        <input type="text" id="message" placeholder="Írj be egy szót" autocomplete="off">
+    </div>
+<script>
+    const socket = io({ autoConnect: false });
+    let isMyTurn = false;
+
+    document.getElementById("join-btn").addEventListener("click", function() {
+        let username = document.getElementById("username").value;
+
+        socket.connect();
+
+        socket.on("connect", function() {
+            socket.emit("user_join", username);
+        });
+
+        document.getElementById("chat").style.display = "block";
+        document.getElementById("landing").style.display = "none";
+    });
+
+    document.getElementById("message").addEventListener("keyup", function(event) {
+        if (event.key === "Enter" && isMyTurn) {
+            let message = document.getElementById("message").value;
+            socket.emit("new_message", message);
+            document.getElementById("message").value = "";
+        }
+    });
+
+    socket.on("chat", function(data) {
+        let ul = document.getElementById("chat-messages");
+        let li = document.createElement("li");
+        li.appendChild(document.createTextNode(data["username"] + ": " + data["message"]));
+        ul.appendChild(li);
+
+        // Check if it's the last message and add the appropriate class
+        const allMessages = document.querySelectorAll("#chat-messages li");
+        allMessages.forEach((message) => {
+            message.classList.remove("last-input");
+        });
+        li.classList.add("last-input");
+
+        ul.scrollTop = ul.scrollHeight;
+    });
+
+    socket.on("your_turn", function() {
+    isMyTurn = true;
+    document.getElementById("message").disabled = false;
+    document.getElementById("message").placeholder = "Írj be egy szót";
+    console.log("It's your turn!");
+});
+
+socket.on("opponent_turn", function() {
+    isMyTurn = false;
+    document.getElementById("message").disabled = true;
+    document.getElementById("message").placeholder = "Várakozás a másik játékosra...";
+    console.log("It's the opponent's turn.");
+
+    function focusOnInput() {
+    document.getElementById('message').focus();
+}
+
+// Automatically focus on the input field every 500 milliseconds (0.5 seconds)
+setInterval(focusOnInput, 10);
+});
+
+</script>
+</body>
+</html>
+
+<!--
+todos:
+optional:
+todo make last message bigger and colorful
+
+todo write an error message if word wasn't good
+todo make a counter for length of game
+todo make a gamemode for languages, subtopics
+todo make a timer
+-->
+
+<!--
+known bugs:
+ugyanaz a felhasználónév nem lehet
+-->
+
+<!--
+kérdések:
+lehet-e tulajdonneveket (nagy kezdőbetűs)
+-->
